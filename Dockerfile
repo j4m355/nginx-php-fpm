@@ -1,6 +1,6 @@
 FROM php:7.1.12-fpm-alpine
 
-LABEL maintainer="Ric Harvey <ric@ngd.io>"
+LABEL maintainer="Ric Harvey <ric@ngd.io>, github.com/j4m355"
 
 ENV php_conf /usr/local/etc/php-fpm.conf
 ENV fpm_conf /usr/local/etc/php-fpm.d/www.conf
@@ -253,6 +253,22 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
 #    ln -s /etc/php7/php.ini /etc/php7/conf.d/php.ini && \
 #    find /etc/php7/conf.d/ -name "*.ini" -exec sed -i -re 's/^(\s*)#(.*)/\1;\2/g' {} \;
 
+RUN apk update
+RUN apk upgrade
+RUN apk add --update autoconf
+RUN apk add --update g++
+RUN apk add --update gcc
+RUN apk add --update make
+RUN pecl install -o -f redis \
+&&  rm -rf /tmp/pear \
+&&  docker-php-ext-enable redis
+
+COPY ./conf/php-fpm.conf /usr/local/etc/
+COPY ./conf/www.conf /usr/local/etc/php-fpm.d/
+COPY ./conf/docker-vars.ini /usr/local/etc/php/conf.d/
+RUN cat /usr/local/etc/php-fpm.conf
+RUN cat /usr/local/etc/php-fpm.d/www.conf
+RUN cat /usr/local/etc/php/conf.d/docker-vars.ini
 
 # Add Scripts
 ADD scripts/start.sh /start.sh
